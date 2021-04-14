@@ -1,0 +1,28 @@
+[tool.poetry]
+name = "mongoengine-softdelete"
+version = "0.0.1"
+description = "Soft delete for MongoEngine"
+authors = [
+    "Dolead <networks@dolead.com>",
+    "Benjamin Hirschfield <benjamin.hirschfield@dolead.com>" ]
+maintainers = ["Benjamin Hirschfield <benjamin.hirschfield@dolead.com>"]
+readme = "README.md"
+repository = "https://github.com/dolead/mongoengine-softdelete"
+documentation = ""
+license = "MIT"
+classifiers = [
+          "Programming Language :: Python :: 3",
+          "License :: OSI Approved :: MIT License"]
+keywords = [ "mongoengine", "soft", "delete" ]
+
+[tool.poetry.dependencies]
+python = "^3.7"
+pymongo = "==3.6.1"
+mongoengine = "==0.16.3"
+
+[tool.poetry.dev-dependencies]
+pytest = "^6.2.3"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
