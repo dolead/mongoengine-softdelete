@@ -35,6 +35,7 @@ class AbstractSoftDeleteMixin:
 
     @property
     def soft_deleted(self):
+        """Will include in the queryset only soft deleted documents."""
         soft_delete_attrs = self._document._meta.get('soft_delete', {})
         for field, sd_value in soft_delete_attrs.items():
             self.initial_query[field] = self.__to_mongo(field, sd_value)
@@ -63,10 +64,12 @@ class SoftDeleteQuerySet(QuerySet, AbstractSoftDeleteMixin):
 
     def no_cache(self):
         if hasattr(self, '_clone_into'):   # Renamed in latest MongoEngine
-            return self._clone_into(SoftDeleteQuerySetNoCache(self._document,
-                                                              self._collection))
-        return self.clone_into(SoftDeleteQuerySetNoCache(self._document,
-                                                         self._collection))
+            return self._clone_into(SoftDeleteQuerySetNoCache(
+                self._document,
+                self._collection))
+        return self.clone_into(SoftDeleteQuerySetNoCache(
+            self._document,
+            self._collection))
 
 
 class SoftDeleteQuerySetNoCache(QuerySetNoCache, AbstractSoftDeleteMixin):
@@ -92,10 +95,12 @@ class SoftDeleteQuerySetNoCache(QuerySetNoCache, AbstractSoftDeleteMixin):
 
     def cache(self):
         if hasattr(self, '_clone_into'):  # Renamed in latest MongoEngine
-            return self._clone_into(SoftDeleteQuerySetNoCache(self._document,
-                                                             self._collection))
-        return self.clone_into(SoftDeleteQuerySetNoCache(self._document,
-                                                         self._collection))
+            return self._clone_into(SoftDeleteQuerySetNoCache(
+                self._document,
+                self._collection))
+        return self.clone_into(SoftDeleteQuerySetNoCache(
+            self._document,
+            self._collection))
 
     def __len__(self):
         return self.count()

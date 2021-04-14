@@ -21,7 +21,7 @@ class TestCase:
 
     def test_create_icecream(self):
         icecreams = IceCream.objects
-        assert len(icecreams) == 0
+        assert icecreams.count() == 0
 
         ice = IceCream(flavor="Vanilla", color="White")
         assert not ice.id
@@ -31,22 +31,25 @@ class TestCase:
         assert ice.id
 
         icecreams = IceCream.objects()
-        assert len(icecreams) == 1
+        assert icecreams.count() == 1
 
     def test_soft_delete(self):
         ice = IceCream(flavor="Strawberry", color="Red").save()
         assert ice.id
-        assert len(IceCream.objects()) > 0
-        assert len(IceCream.objects(deleted=True)) == 0
+        assert IceCream.objects().count() > 0
+        assert IceCream.objects().including_soft_deleted.count() > 0
+        assert IceCream.objects().soft_deleted.count() == 0
         assert not ice.is_soft_deleted
 
         ice.soft_delete()
         ice = ice.reload()
-        assert len(IceCream.objects()) == 0
-        assert len(IceCream.objects(deleted=True)) > 0
+        assert IceCream.objects().count() == 0
+        assert IceCream.objects().including_soft_deleted.count() > 0
+        assert IceCream.objects().soft_deleted.count() > 0
         assert ice.is_soft_deleted
 
         ice.soft_undelete()
-        assert len(IceCream.objects()) > 0
-        assert len(IceCream.objects(deleted=True)) == 0
+        assert IceCream.objects().count() > 0
+        assert IceCream.objects().including_soft_deleted.count() > 0
+        assert IceCream.objects().soft_deleted.count() == 0
         assert not ice.is_soft_deleted

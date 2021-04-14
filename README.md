@@ -50,4 +50,6 @@ Here is an example on how to use a soft deletable document:
 
 The test suit requires that you run a local instance of MongoDB on the standard
 port and have `pytest` installed.  
-You can run tests with the `pytest` command.
+You can run tests with the `pytest` command or with `make test`.
+
+Linting is done with `mypy` and `pycodestyle` with the `make lint` command.

@@ -87,7 +87,6 @@ class AbstactSoftDeleteDocument:
         return obj
 
 
-
 class SoftDeleteDocument(Document, AbstactSoftDeleteDocument):
     meta = {'queryset_class': SoftDeleteQuerySet}
     my_metaclass = TopLevelDocumentMetaclass
