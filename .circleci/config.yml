@@ -1,0 +1,29 @@
+version: 2
+jobs:
+  build_n_run:
+    docker:
+      - image: circleci/python:3.7
+    steps:
+      - checkout
+      - run:
+          name: Install poetry
+          command: |
+            curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -
+            poetry install
+      - save_cache:
+          key: deps-{{ checksum "poetry.lock" }}
+          paths:
+            - /home/circleci/.cache/pypoetry/virtualenvs
+      - run:
+          name: Run lint
+          command: |
+            make lint
+      - run:
+          name: Run tests
+          command: |
+            make test
+workflows:
+  version: 2
+  commit:
+    jobs:
+      - build_n_run
