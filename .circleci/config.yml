@@ -3,27 +3,52 @@ jobs:
   build_n_run:
     docker:
       - image: circleci/python:3.7
+      - image: circleci/mongo:3.6-stretch
     steps:
       - checkout
+      - restore_cache:
+          keys:
+            - deps-{{ checksum "poetry.lock" }}
       - run:
           name: Install poetry
           command: |
-            curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -
             poetry install
       - save_cache:
           key: deps-{{ checksum "poetry.lock" }}
           paths:
             - /home/circleci/.cache/pypoetry/virtualenvs
       - run:
-          name: Run lint
-          command: |
-            make lint
-      - run:
           name: Run tests
           command: |
-            make test
+            poetry run pytest \
+              --html=tests_coverage/coverage.html --self-contained-html \
+              --junit-xml=tests_coverage/coverage.xml
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - project/tests_coverage
+      - run:
+          name: Build
+          command: |
+            make build
+
+  upload-coverage:
+    docker:
+      - image: circleci/python:3.7
+    steps:
+      - checkout
+      - attach_workspace:
+          at: ~/
+      - store_artifacts:
+          path: ~/project/tests_coverage/
+      - store_test_results:
+          path: ~/project/tests_coverage/
+
 workflows:
   version: 2
   commit:
     jobs:
       - build_n_run
+      - upload-coverage:
+          requires:
+            - build_n_run

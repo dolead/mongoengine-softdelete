@@ -1,14 +1,16 @@
+RUN=poetry run
+
 install:
 	poetry update
 
 test:
-	pytest
+	$(RUN) pytest
 
 pep8:
-	pycodestyle --ignore=E126,E127,E128,W503 mongoengine_softdelete/
+	$(RUN) pycodestyle --ignore=E126,E127,E128,W503 mongoengine_softdelete/
 
 mypy:
-	mypy mongoengine_softdelete --ignore-missing-imports
+	$(RUN) mypy mongoengine_softdelete --ignore-missing-imports
 
 lint: pep8 mypy
 
