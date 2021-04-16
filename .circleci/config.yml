@@ -1,9 +1,18 @@
-version: 2
-jobs:
-  build_n_run:
+version: 2.1
+executors:
     docker:
       - image: circleci/python:3.7
-      - image: circleci/mongo:3.6-stretch
+      - image: circleci/mongo:3.6
+jobs:
+  build_n_run:
+    parameters:
+      mongo_version:
+        type: string
+      python_version:
+        type: string
+    docker:
+      - image: circleci/python:<<parameters.python_version>>
+      - image: circleci/mongo:<<parameters.mongo_version>>
     steps:
       - checkout
       - restore_cache:
@@ -45,10 +54,14 @@ jobs:
           path: ~/project/tests_coverage/
 
 workflows:
-  version: 2
-  commit:
+  version: 2.1
+  all-tests:
     jobs:
-      - build_n_run
+      - build_n_run:
+          matrix:
+            parameters:
+              mongo_version: [3.6, 4.4]
+              python_version: [3.7]
       - upload-coverage:
           requires:
             - build_n_run
