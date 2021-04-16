@@ -21,6 +21,8 @@ jobs:
           name: Run tests
           command: |
             poetry run pytest \
+              --cov=mongoengine_softdelete \
+              --cov-report html:tests_coverage/pycov \
               --html=tests_coverage/coverage.html --self-contained-html \
               --junit-xml=tests_coverage/coverage.xml
       - persist_to_workspace:
