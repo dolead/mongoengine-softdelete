@@ -19,7 +19,7 @@ jobs:
           at: ~/
       - restore_cache:
           keys:
-            - deps-{{ checksum "poetry.lock" }}-{{ .Environment.CIRCLE_JOB }}}}
+            - deps-{{ checksum "poetry.lock" }}-{{ .Environment.CIRCLE_JOB }}
       - when:
           condition:
             and:
@@ -35,7 +35,7 @@ jobs:
           command: |
             poetry install
       - save_cache:
-          key: deps-{{ checksum "poetry.lock" }}-{{ .Environment.CIRCLE_JOB }}}}
+          key: deps-{{ checksum "poetry.lock" }}-{{ .Environment.CIRCLE_JOB }}
           paths:
             - /home/circleci/.cache/pypoetry/virtualenvs
       - run:
