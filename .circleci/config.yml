@@ -10,7 +10,7 @@ jobs:
           keys:
             - deps-{{ checksum "poetry.lock" }}
       - run:
-          name: Install poetry
+          name: Poetry installing dependencies
           command: |
             poetry install
       - save_cache:
@@ -18,13 +18,15 @@ jobs:
           paths:
             - /home/circleci/.cache/pypoetry/virtualenvs
       - run:
-          name: Run tests
+          name: Run tests & coverage
           command: |
             poetry run pytest \
               --cov=mongoengine_softdelete \
               --cov-report html:tests_coverage/pycov \
               --html=tests_coverage/coverage.html --self-contained-html \
               --junit-xml=tests_coverage/coverage.xml
+            poetry run coverage report
+            mv .coverage tests_coverage/
       - persist_to_workspace:
           root: ~/
           paths:
