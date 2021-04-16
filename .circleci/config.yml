@@ -11,15 +11,15 @@ jobs:
     docker:
       - image: circleci/<<parameters.python_version>>
       - image: circleci/<<parameters.mongo_version>>
+    environment:
+      JOB_VERSION: <<parameters.python_version>>_<<parameters.mongo_version>>_<<parameters.mengine_version>>
     steps:
       - checkout
-      # - restore_cache:
-      #     keys:
-      #       - deps-{{ checksum "poetry.lock" }}
-      - run:
-          name: Install poetry
-          command: |
-            poetry install
+      - attach_workspace:
+          at: ~/
+      - restore_cache:
+          keys:
+            - deps-{{ checksum "poetry.lock" }}-{{ .Environment.CIRCLE_JOB }}}}
       - when:
           condition:
             and:
@@ -30,32 +30,39 @@ jobs:
                 name: Updating MongoEngine version
                 command: |
                   poetry add "<<parameters.mengine_version>>" "pymongo>=3.6.1"
+      - run:
+          name: Poetry installing dependencies
+          command: |
+            poetry install
       - save_cache:
-          key: deps-{{ checksum "poetry.lock" }}
+          key: deps-{{ checksum "poetry.lock" }}-{{ .Environment.CIRCLE_JOB }}}}
           paths:
             - /home/circleci/.cache/pypoetry/virtualenvs
       - run:
-          name: Run tests
+          name: Run tests & coverage
           command: |
             poetry run pytest \
-              --html=tests_coverage/coverage.html --self-contained-html \
-              --junit-xml=tests_coverage/coverage.xml
-      # - persist_to_workspace:
-      #     root: ~/
-      #     paths:
-      #       - project/tests_coverage
+              --cov=mongoengine_softdelete \
+              --cov-report html:tests_coverage/$JOB_VERSION/pycov \
+              --html="tests_coverage/$JOB_VERSION/coverage.html" --self-contained-html \
+              --junit-xml="tests_coverage/$JOB_VERSION/coverage.xml"
+            poetry run coverage report
+            mv .coverage tests_coverage/$JOB_VERSION/
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - project/tests_coverage
       - run:
           name: Build
           command: |
             make build
-
-  # upload-coverage:
-  #   docker:
-  #     - image: circleci/python:3.7
-  #   steps:
-  #     - checkout
-  #     - attach_workspace:
-  #         at: ~/
+  upload-coverage:
+    docker:
+      - image: circleci/python:3.7
+    steps:
+      - checkout
+      - attach_workspace:
+          at: ~/
       - store_artifacts:
           path: ~/project/tests_coverage/
       - store_test_results:
@@ -70,7 +77,7 @@ workflows:
             parameters:
               python_version:
                 - "python:3.7"
-                - "python:3.8"
+                # - "python:3.8"
                 - "python:latest"
               mongo_version:
                 - "mongo:3.6"
@@ -79,6 +86,6 @@ workflows:
               mengine_version:
                 - "mongoengine==0.16.3"
                 - "mongoengine@latest"
-      # - upload-coverage:
-      #     requires:
-      #       - build_n_run
+      - upload-coverage:
+          requires:
+            - build_n_run
