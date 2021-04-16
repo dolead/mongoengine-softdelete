@@ -32,22 +32,22 @@ jobs:
             poetry run pytest \
               --html=tests_coverage/coverage.html --self-contained-html \
               --junit-xml=tests_coverage/coverage.xml
-      - persist_to_workspace:
-          root: ~/
-          paths:
-            - project/tests_coverage
+      # - persist_to_workspace:
+      #     root: ~/
+      #     paths:
+      #       - project/tests_coverage
       - run:
           name: Build
           command: |
             make build
 
-  upload-coverage:
-    docker:
-      - image: circleci/python:3.7
-    steps:
-      - checkout
-      - attach_workspace:
-          at: ~/
+  # upload-coverage:
+  #   docker:
+  #     - image: circleci/python:3.7
+  #   steps:
+  #     - checkout
+  #     - attach_workspace:
+  #         at: ~/
       - store_artifacts:
           path: ~/project/tests_coverage/
       - store_test_results:
@@ -62,6 +62,6 @@ workflows:
             parameters:
               mongo_version: [3.6, 4.4]
               python_version: [3.7]
-      - upload-coverage:
-          requires:
-            - build_n_run
+      # - upload-coverage:
+      #     requires:
+      #       - build_n_run
