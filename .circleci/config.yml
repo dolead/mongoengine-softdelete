@@ -13,6 +13,7 @@ jobs:
       - image: circleci/<<parameters.mongo_version>>
     environment:
       JOB_VERSION: <<parameters.python_version>>_<<parameters.mongo_version>>_<<parameters.mengine_version>>
+    parallelism: 1
     steps:
       - checkout
       - attach_workspace:
