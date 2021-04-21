@@ -17,14 +17,16 @@ keywords = [ "mongoengine", "soft", "delete" ]
 
 [tool.poetry.dependencies]
 python = "^3.7"
-pymongo = "==3.6.1"
-mongoengine = "==0.16.3"
+pymongo = "^3.6.1"
+mongoengine = "^0.16.3"
 pytest-html = "^3.1.1"
 
 [tool.poetry.dev-dependencies]
-pytest = "^6.2.3"
 pycodestyle = "^2.7.0"
 mypy = "^0.812"
+pytest = "^6.2.3"
+pytest-cov = "^2.11.1"
+coverage = "^5.5"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
