@@ -78,11 +78,9 @@ workflows:
             parameters:
               python_version:
                 - "python:3.7"
-                # - "python:3.8"
                 - "python:latest"
               mongo_version:
                 - "mongo:3.6"
-                # - "mongo:4.4"
                 - "mongo:latest"
               mengine_version:
                 - "mongoengine==0.16.3"

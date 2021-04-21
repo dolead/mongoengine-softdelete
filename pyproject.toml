@@ -17,8 +17,8 @@ keywords = [ "mongoengine", "soft", "delete" ]
 
 [tool.poetry.dependencies]
 python = "^3.7"
-pymongo = "==3.6.1"
-mongoengine = "==0.16.3"
+pymongo = "^3.6.1"
+mongoengine = "^0.16.3"
 pytest-html = "^3.1.1"
 
 [tool.poetry.dev-dependencies]
