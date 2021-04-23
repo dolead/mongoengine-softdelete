@@ -1,20 +1,42 @@
-version: 2
+version: 2.1
 jobs:
   build_n_run:
+    parameters:
+      python_version:
+        type: string
+      mongo_version:
+        type: string
+      mengine_version:
+        type: string
     docker:
-      - image: circleci/python:3.7
-      - image: circleci/mongo:3.6-stretch
+      - image: circleci/<<parameters.python_version>>
+      - image: circleci/<<parameters.mongo_version>>
+    environment:
+      JOB_VERSION: <<parameters.python_version>>_<<parameters.mongo_version>>_<<parameters.mengine_version>>
+    parallelism: 1
     steps:
       - checkout
+      - attach_workspace:
+          at: ~/
       - restore_cache:
           keys:
-            - deps-{{ checksum "poetry.lock" }}
+            - deps-{{ checksum "poetry.lock" }}-{{ .Environment.CIRCLE_JOB }}
+      - when:
+          condition:
+            and:
+              - not:
+                  equal: [ "mongoengine==0.16.3", <<parameters.mengine_version>> ]
+          steps:
+            - run:
+                name: Updating MongoEngine version
+                command: |
+                  poetry add "<<parameters.mengine_version>>" "pymongo>=3.6.1"
       - run:
           name: Poetry installing dependencies
           command: |
             poetry install
       - save_cache:
-          key: deps-{{ checksum "poetry.lock" }}
+          key: deps-{{ checksum "poetry.lock" }}-{{ .Environment.CIRCLE_JOB }}
           paths:
             - /home/circleci/.cache/pypoetry/virtualenvs
       - run:
@@ -22,11 +44,11 @@ jobs:
           command: |
             poetry run pytest \
               --cov=mongoengine_softdelete \
-              --cov-report html:tests_coverage/pycov \
-              --html=tests_coverage/coverage.html --self-contained-html \
-              --junit-xml=tests_coverage/coverage.xml
+              --cov-report html:tests_coverage/$JOB_VERSION/pycov \
+              --html="tests_coverage/$JOB_VERSION/coverage.html" --self-contained-html \
+              --junit-xml="tests_coverage/$JOB_VERSION/coverage.xml"
             poetry run coverage report
-            mv .coverage tests_coverage/
+            mv .coverage tests_coverage/$JOB_VERSION/
       - persist_to_workspace:
           root: ~/
           paths:
@@ -35,7 +57,6 @@ jobs:
           name: Build
           command: |
             make build
-
   upload-coverage:
     docker:
       - image: circleci/python:3.7
@@ -49,10 +70,21 @@ jobs:
           path: ~/project/tests_coverage/
 
 workflows:
-  version: 2
-  commit:
+  version: 2.1
+  all-tests:
     jobs:
-      - build_n_run
+      - build_n_run:
+          matrix:
+            parameters:
+              python_version:
+                - "python:3.7"
+                - "python:latest"
+              mongo_version:
+                - "mongo:3.6"
+                - "mongo:latest"
+              mengine_version:
+                - "mongoengine==0.16.3"
+                - "mongoengine@latest"
       - upload-coverage:
           requires:
             - build_n_run
