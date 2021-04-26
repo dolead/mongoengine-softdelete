@@ -49,6 +49,14 @@ jobs:
               --junit-xml="tests_coverage/$JOB_VERSION/coverage.xml"
             poetry run coverage report
             mv .coverage tests_coverage/$JOB_VERSION/
+      - when:
+          condition:
+            equal: [ "mongoengine==0.16.3", <<parameters.mengine_version>> ]
+          steps:
+            - run:
+                name: Using this coverage report for Codacy
+                command: |
+                  cp tests_coverage/$JOB_VERSION/coverage.xml tests_coverage/coverage.xml
       - persist_to_workspace:
           root: ~/
           paths:
