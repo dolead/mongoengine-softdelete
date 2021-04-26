@@ -65,15 +65,14 @@ python-versions = "*"
 
 [[package]]
 name = "mongoengine"
-version = "0.16.3"
+version = "0.23.0"
 description = "MongoEngine is a Python Object-Document Mapper for working with MongoDB."
 category = "main"
 optional = false
-python-versions = "*"
+python-versions = ">=3.6"
 
 [package.dependencies]
-pymongo = ">=2.7.1"
-six = "*"
+pymongo = ">=3.4,<4.0"
 
 [[package]]
 name = "mypy"
@@ -227,14 +226,6 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, !=3.5.*"
 pytest = ">=2.9.0"
 
 [[package]]
-name = "six"
-version = "1.15.0"
-description = "Python 2 and 3 compatibility utilities"
-category = "main"
-optional = false
-python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*"
-
-[[package]]
 name = "toml"
 version = "0.10.2"
 description = "Python Library for Tom's Obvious, Minimal Language"
@@ -273,7 +264,7 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=1.2.3)", "pytest-flake8", "pyt
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "a2faa62a600f146bdec01ebc965be5b02e368413954c693cb195a1e37ce5a606"
+content-hash = "8e017630408e437b460aa895b5717a6064349c17f8c1f096d400fefa2d22f2a8"
 
 [metadata.files]
 atomicwrites = [
@@ -351,8 +342,8 @@ iniconfig = [
     {file = "iniconfig-1.1.1.tar.gz", hash = "sha256:bc3af051d7d14b2ee5ef9969666def0cd1a000e121eaea580d4a313df4b37f32"},
 ]
 mongoengine = [
-    {file = "mongoengine-0.16.3-py2-none-any.whl", hash = "sha256:ca4993f39df07dabbf7503d56c4eba67dbdac5d2ec83ccffe20d38d5d02c2d3b"},
-    {file = "mongoengine-0.16.3.tar.gz", hash = "sha256:424edf66a5fadd5e22295b9c1b1604d96e7bd14273a0cbe281b5ddac2edb97e3"},
+    {file = "mongoengine-0.23.0-py3-none-any.whl", hash = "sha256:136d93af442d867e1d52f90c3d3066112ad91578239d0bf5b8131b3ea15b3d75"},
+    {file = "mongoengine-0.23.0.tar.gz", hash = "sha256:4b5a4aa317a138f09df956deaac1d62c1618af24a27c1826a6893709007d9047"},
 ]
 mypy = [
     {file = "mypy-0.812-cp35-cp35m-macosx_10_9_x86_64.whl", hash = "sha256:a26f8ec704e5a7423c8824d425086705e381b4f1dfdef6e3a1edab7ba174ec49"},
@@ -483,10 +474,6 @@ pytest-html = [
 pytest-metadata = [
     {file = "pytest-metadata-1.11.0.tar.gz", hash = "sha256:71b506d49d34e539cc3cfdb7ce2c5f072bea5c953320002c95968e0238f8ecf1"},
     {file = "pytest_metadata-1.11.0-py2.py3-none-any.whl", hash = "sha256:576055b8336dd4a9006dd2a47615f76f2f8c30ab12b1b1c039d99e834583523f"},
-]
-six = [
-    {file = "six-1.15.0-py2.py3-none-any.whl", hash = "sha256:8b74bedcbbbaca38ff6d7491d76f2b06b3592611af620f8426e82dddb04a5ced"},
-    {file = "six-1.15.0.tar.gz", hash = "sha256:30639c035cdb23534cd4aa2dd52c3bf48f06e5f4a941509c8bafd8ce11080259"},
 ]
 toml = [
     {file = "toml-0.10.2-py2.py3-none-any.whl", hash = "sha256:806143ae5bfb6a3c6e736a764057db0e6a0e05e338b5630894a5f779cabb4f9b"},
