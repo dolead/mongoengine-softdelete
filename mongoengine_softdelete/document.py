@@ -32,7 +32,7 @@ class AbstactSoftDeleteDocument:
         signals.post_soft_delete.send(self.__class__, document=self)
 
     def soft_undelete(self):
-        """Will undelete the document"""
+        """Will undelete the document."""
         signals.pre_soft_undelete.send(self.__class__, document=self)
         for key in self._meta.get('soft_delete', {}):
             undelete_value = self._fields[key].default
@@ -42,7 +42,8 @@ class AbstactSoftDeleteDocument:
 
     @property
     def is_soft_deleted(self):
-        """
+        """Check if the document is soft deleted
+
         Return true if the field of the document are set according to the
         soft deleted state as defined in the metas.
         """
