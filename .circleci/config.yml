@@ -51,7 +51,10 @@ jobs:
             mv .coverage tests_coverage/$JOB_VERSION/
       - when:
           condition:
-            equal: [ "mongoengine==0.16.3", <<parameters.mengine_version>> ]
+            and:
+              - equal: [ "mongoengine==0.16.3", <<parameters.mengine_version>> ]
+              - equal: [ "mongo:3.6", <<parameters.mongo_version>> ]
+              - equal: [ "python:3.7", <<parameters.python_version>> ]
           steps:
             - run:
                 name: Using this coverage report for Codacy
