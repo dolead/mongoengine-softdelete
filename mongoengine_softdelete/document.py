@@ -13,8 +13,7 @@ class AbstactSoftDeleteDocument:
 
     @property
     def _qs(self):  # FIXME should be present in mongoengine ?
-        """
-        Returns the queryset to use for updating / reloading / deletions.
+        """Returns the queryset to use for updating / reloading / deletions.
         """
         if not hasattr(self, '__objects'):
             queryset_class = self._meta.get('queryset_class', QuerySet)
