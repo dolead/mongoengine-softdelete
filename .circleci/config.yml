@@ -1,31 +1,5 @@
 version: 2.1
 jobs:
-  coverage:
-    docker:
-      - image: circleci/python:3.7
-    steps:
-      - checkout
-      - attach_workspace:
-          at: ~/
-      - restore_cache:
-          keys:
-            - deps-coverage-{{ checksum "poetry.lock" }}
-      - run :
-          name: Upload coverage results to Codacy
-          command: |
-            cd ~/project
-            mkdir -p ~/project/tests_coverage/
-            poetry install
-            poetry run coverage xml -o ~/project/tests_coverage/coverage.xml
-            python-codacy-coverage -r ~/project/tests_coverage/coverage.xml
-      - save_cache:
-          key: deps-coverage-{{ checksum "poetry.lock" }}
-          paths:
-            - /home/circleci/.cache/pypoetry/virtualenvs
-      - persist_to_workspace:
-          root: ~/
-          paths:
-            - project/tests_coverage
   build_n_run:
     parameters:
       python_version:
@@ -90,6 +64,10 @@ jobs:
       - checkout
       - attach_workspace:
           at: ~/
+      - run :
+          name: Upload coverage results to Codacy
+          command: |
+            python-codacy-coverage -r ~/project/tests_coverage/coverage.xml
       - store_artifacts:
           path: ~/project/tests_coverage/
       - store_test_results:
@@ -99,7 +77,6 @@ workflows:
   version: 2.1
   all-tests:
     jobs:
-      - coverage
       - build_n_run:
           matrix:
             parameters:
@@ -121,5 +98,4 @@ workflows:
                 # - "mongoengine@^0.23.0"
       - store_coverage:
           requires:
-            - coverage
             - build_n_run
