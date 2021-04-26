@@ -13,8 +13,7 @@ class AbstractSoftDeleteMixin:
             return self._cls_query
 
     def _not_soft_deleted_cond(self, **kwargs):
-        """Query conditions for documents that are not soft deleted
-        """
+        """Query conditions for documents that are not soft deleted"""
         cond = {}
         for key, val in self._document._meta.get('soft_delete', {}).items():
             if key in kwargs:  # not overriding kwargs

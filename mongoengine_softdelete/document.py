@@ -13,17 +13,17 @@ class AbstactSoftDeleteDocument:
 
     @property
     def _qs(self):  # FIXME should be present in mongoengine ?
-        """Returns the queryset to use for updating / reloading / deletions.
-        """
+        """Returns the queryset to use for updating / reloading / deletions."""
         if not hasattr(self, '__objects'):
             queryset_class = self._meta.get('queryset_class', QuerySet)
             self.__objects = queryset_class(self, self._get_collection())
         return self.__objects
 
     def soft_delete(self):
-        """
-        Won't delete the document as much as marking it as deleted according
-        to parameters present in meta.
+        """Soft delete a document
+
+        Marks a document as deleted based on the parameter set in meta instead
+        of deleting it.
         """
         signals.pre_soft_delete.send(self.__class__, document=self)
         for key, val in self._meta.get('soft_delete', {}).items():
@@ -32,9 +32,7 @@ class AbstactSoftDeleteDocument:
         signals.post_soft_delete.send(self.__class__, document=self)
 
     def soft_undelete(self):
-        """
-        Will undelete the document
-        """
+        """Will undelete the document"""
         signals.pre_soft_undelete.send(self.__class__, document=self)
         for key in self._meta.get('soft_delete', {}):
             undelete_value = self._fields[key].default
@@ -73,8 +71,7 @@ class AbstactSoftDeleteDocument:
             .filter(**self._object_key).update_one(**kwargs)
 
     def reload(self, max_depth=1):
-        """
-        Overriding reload which would raise DoesNotExist
+        """Overriding reload which would raise DoesNotExist
         on soft deleted document
         """
         if not self.pk:
