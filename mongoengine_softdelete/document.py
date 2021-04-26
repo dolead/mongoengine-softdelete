@@ -42,8 +42,7 @@ class AbstactSoftDeleteDocument:
 
     @property
     def is_soft_deleted(self):
-        """
-        Check if the document is soft deleted.
+        """Check if the document is soft deleted.
 
         Return true if the field of the document are set according to the
         soft deleted state as defined in the metas.
@@ -54,8 +53,7 @@ class AbstactSoftDeleteDocument:
         return True
 
     def update(self, **kwargs):
-        """
-        Overriding  ~mongoengine.Document.update method.
+        """Overriding  ~mongoengine.Document.update method.
 
         The ~mongoengine.Document.update method had to be overriden
         so it's not soft_delete aware and will update document
@@ -75,8 +73,7 @@ class AbstactSoftDeleteDocument:
             .filter(**self._object_key).update_one(**kwargs)
 
     def reload(self, max_depth=1):
-        """
-        Overriding reload.
+        """Overriding reload.
 
         Overriding reload which would raise DoesNotExist
         on soft deleted document
