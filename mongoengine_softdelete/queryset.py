@@ -19,7 +19,7 @@ class AbstractSoftDeleteMixin:
         for key, val in self._document._meta.get('soft_delete', {}).items():
             if key in kwargs:  # not overriding kwargs
                 continue
-            if type(val) is bool:
+            if isinstance(val, bool):
                 cond[key] = not val
             else:
                 cond[key] = {'$ne': self.__to_mongo(key, val)}

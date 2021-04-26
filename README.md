@@ -1,14 +1,16 @@
+[![CircleCI](https://circleci.com/gh/dolead/mongoengine-softdelete.svg?style=shield)](https://app.circleci.com/pipelines/github/dolead/mongoengine-softdelete) [![Codacy Badge](https://app.codacy.com/project/badge/Grade/6d09806a72f44b65aeb72cbbafa9c986)](https://www.codacy.com/gh/dolead/mongoengine-softdelete/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=dolead/mongoengine-softdelete&amp;utm_campaign=Badge_Grade)
+
 # MongoEngine Soft Delete
 
 Make a document soft deletable.
 
-# Installation
+## Installation
 
 Install `mongoengine-softdelete` through pip as usual:
 
     pip install mongoengine-softdelete
 
-# Usage
+## Usage
 
 Here is an example on how to use a soft deletable document:
 
@@ -45,8 +47,7 @@ Here is an example on how to use a soft deletable document:
     assert len(IceCream.objects()) > 0
     assert not ice.is_soft_deleted
 
-
-# Tests
+## Tests
 
 The test suit requires that you run a local instance of MongoDB on the standard
 port and have `pytest` installed.  
