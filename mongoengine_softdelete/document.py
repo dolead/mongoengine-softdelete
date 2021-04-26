@@ -20,8 +20,7 @@ class AbstactSoftDeleteDocument:
         return self.__objects
 
     def soft_delete(self):
-        """
-        Soft delete a document.
+        """Soft delete a document.
 
         Marks a document as deleted based on the parameter set in meta instead
         of deleting it.

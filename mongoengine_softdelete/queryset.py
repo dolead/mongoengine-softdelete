@@ -49,8 +49,7 @@ class SoftDeleteQuerySet(QuerySet, AbstractSoftDeleteMixin):
         self.initial_query.update(not_soft_deleted_conditions)
 
     def __call__(self, q_obj=None, **query):
-        """
-        Wrapper for ~mongoengine.queryset.QuerySet.__call__.
+        """Wrapper for ~mongoengine.queryset.QuerySet.__call__.
 
         A simple wrapper around ~mongoengine.queryset.QuerySet.__call__ that
         allows query parameters to override those written in the initial query.
