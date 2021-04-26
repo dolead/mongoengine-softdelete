@@ -78,6 +78,8 @@ jobs:
       - run :
           name: Upload coverage results to Codacy
           command: |
+            pip install --upgrade codacy-coverage
+            cd ~/project
             python-codacy-coverage -r ~/project/tests_coverage/coverage.xml
       - store_artifacts:
           path: ~/project/tests_coverage/
