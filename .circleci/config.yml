@@ -49,6 +49,17 @@ jobs:
               --junit-xml="tests_coverage/$JOB_VERSION/coverage.xml"
             poetry run coverage report
             mv .coverage tests_coverage/$JOB_VERSION/
+      - when:
+          condition:
+            and:
+              - equal: [ "mongoengine==0.16.3", <<parameters.mengine_version>> ]
+              - equal: [ "mongo:3.6", <<parameters.mongo_version>> ]
+              - equal: [ "python:3.7", <<parameters.python_version>> ]
+          steps:
+            - run:
+                name: Using this coverage report for Codacy
+                command: |
+                  cp tests_coverage/$JOB_VERSION/coverage.xml tests_coverage/coverage.xml
       - persist_to_workspace:
           root: ~/
           paths:
@@ -57,13 +68,19 @@ jobs:
           name: Build
           command: |
             make build
-  upload-coverage:
+  store_coverage:
     docker:
       - image: circleci/python:3.7
     steps:
       - checkout
       - attach_workspace:
           at: ~/
+      # - run :
+      #     name: Upload coverage results to Codacy
+      #     command: |
+      #       pip install --upgrade codacy-coverage
+      #       cd ~/project
+      #       python-codacy-coverage -r ~/project/tests_coverage/coverage.xml
       - store_artifacts:
           path: ~/project/tests_coverage/
       - store_test_results:
@@ -78,13 +95,20 @@ workflows:
             parameters:
               python_version:
                 - "python:3.7"
-                - "python:latest"
+                - "python:3.8"
+                - "python:3.9"
               mongo_version:
                 - "mongo:3.6"
-                - "mongo:latest"
+                - "mongo:4.4"
               mengine_version:
                 - "mongoengine==0.16.3"
-                - "mongoengine@latest"
-      - upload-coverage:
+                - "mongoengine@^0.17.0"
+                - "mongoengine@^0.18.0"
+                - "mongoengine@^0.19.0"
+                - "mongoengine@^0.20.0"
+                - "mongoengine@^0.21.0"
+                - "mongoengine@^0.22.0"
+                - "mongoengine@^0.23.0"
+      - store_coverage:
           requires:
             - build_n_run
