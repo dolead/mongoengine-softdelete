@@ -11,14 +11,6 @@ from mongoengine_softdelete.queryset import (SoftDeleteQuerySet,
 
 class AbstactSoftDeleteDocument:
 
-    @property
-    def _qs(self):  # FIXME should be present in mongoengine ?
-        """Returns the queryset to use for updating / reloading / deletions."""
-        if not hasattr(self, '__objects'):
-            queryset_class = self._meta.get('queryset_class', QuerySet)
-            self.__objects = queryset_class(self, self._get_collection())
-        return self.__objects
-
     def soft_delete(self):
         """Won't delete the document as much as marking it as deleted according
         to parameters present in meta.
@@ -67,12 +59,21 @@ class AbstactSoftDeleteDocument:
         return self._qs.including_soft_deleted \
             .filter(**self._object_key).update_one(**kwargs)
 
-    def reload(self, max_depth=1):
+    def reload(self, *fields, **kwargs):
         """Overriding reload which would raise DoesNotExist
         on soft deleted document"""
+        max_depth = 1
+        if fields and isinstance(fields[0], int):
+            max_depth = fields[0]
+            fields = fields[1:]
+        elif "max_depth" in kwargs:
+            max_depth = kwargs["max_depth"]
+
         if not self.pk:
             raise self.DoesNotExist("Document does not exist")
+
         obj = self._qs.read_preference(ReadPreference.PRIMARY) \
+            .including_soft_deleted() \
             .filter(**self._object_key).including_soft_deleted.limit(1) \
             .select_related(max_depth=max_depth)
 
@@ -81,8 +82,11 @@ class AbstactSoftDeleteDocument:
         else:
             raise self.DoesNotExist("Document does not exist")
         for field in self._fields_ordered:
-            setattr(self, field, self._reload(field, obj[field]))
-        self._changed_fields = obj._changed_fields
+            try:
+                setattr(self, field, self._reload(field, obj.get(field)))
+            except KeyError:
+                delattr(self, field)
+        self._changed_fields = list(set(self._changed_fields) - set(fields)) if fields else obj._changed_fields
         self._created = False
         return obj
 
