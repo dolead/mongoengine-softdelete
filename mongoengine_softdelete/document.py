@@ -11,6 +11,14 @@ from mongoengine_softdelete.queryset import (SoftDeleteQuerySet,
 
 class AbstactSoftDeleteDocument:
 
+    @property
+    def _qs(self):  # FIXME should be present in mongoengine ?
+        """Returns the queryset to use for updating / reloading / deletions."""
+        if not hasattr(self, '__objects'):
+            queryset_class = self._meta.get('queryset_class', QuerySet)
+            self.__objects = queryset_class(self, self._get_collection())
+        return self.__objects
+
     def soft_delete(self):
         """Won't delete the document as much as marking it as deleted according
         to parameters present in meta.
@@ -83,21 +91,22 @@ class AbstactSoftDeleteDocument:
             raise self.DoesNotExist("Document does not exist")
         for field in self._fields_ordered:
             try:
-                setattr(self, field, self._reload(field, obj.get(field)))
+                setattr(self, field, self._reload(field, obj._data.get(field)))
             except KeyError:
                 delattr(self, field)
-        self._changed_fields = list(set(self._changed_fields) - set(fields)) if fields else obj._changed_fields
+        self._changed_fields = list(set(self._changed_fields) - set(fields)) \
+                               if fields else obj._changed_fields
         self._created = False
         return obj
 
 
-class SoftDeleteDocument(Document, AbstactSoftDeleteDocument):
+class SoftDeleteDocument(AbstactSoftDeleteDocument, Document):
     meta = {'queryset_class': SoftDeleteQuerySet}
     my_metaclass = TopLevelDocumentMetaclass
     __metaclass__ = TopLevelDocumentMetaclass
 
 
-class SoftDeleteNoCacheDocument(Document, AbstactSoftDeleteDocument):
+class SoftDeleteNoCacheDocument(AbstactSoftDeleteDocument, Document):
     meta = {'queryset_class': SoftDeleteQuerySetNoCache}
     my_metaclass = TopLevelDocumentMetaclass
     __metaclass__ = TopLevelDocumentMetaclass
