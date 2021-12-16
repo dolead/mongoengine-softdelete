@@ -6,23 +6,27 @@ from tests.models.icecream import IceCream
 from tests.models.softcream import SoftCream
 
 class TestCase:
+    @staticmethod
     @pytest.fixture(autouse=True)
-    def _database(self):
+    def _database():
         db = connect(db="mongoengine_softdelete")
-        self.setUp()
+        TestCase.setUp()
         yield
-        self.tearDown()
+        TestCase.tearDown()
         db.close()
 
-    def setUp(self):
+    @staticmethod
+    def setUp():
         IceCream.drop_collection()
         SoftCream.drop_collection()
 
-    def tearDown(self):
+    @staticmethod
+    def tearDown():
         IceCream.drop_collection()
         SoftCream.drop_collection()
 
-    def test_create_icecream(self):
+    @staticmethod
+    def test_create_icecream():
         icecreams = IceCream.objects
         assert icecreams.count() == 0
 
@@ -36,7 +40,8 @@ class TestCase:
         icecreams = IceCream.objects()
         assert icecreams.count() == 1
 
-    def test_soft_delete(self):
+    @staticmethod
+    def test_soft_delete():
         ice = IceCream(flavor="Strawberry", color="Red").save()
         assert ice.id
         assert IceCream.objects().count() > 0

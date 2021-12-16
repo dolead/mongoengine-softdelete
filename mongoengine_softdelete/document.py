@@ -21,8 +21,10 @@ class AbstactSoftDeleteDocument(Document):
         return self.__objects
 
     def soft_delete(self):
-        """Won't delete the document as much as marking it as deleted according
-        to parameters present in meta.
+        """Soft delete a document.
+
+        Marks a document as deleted based on the parameter set in meta instead
+        of deleting it.
         """
         signals.pre_soft_delete.send(self.__class__, document=self)
         for key, val in self._meta.get('soft_delete', {}).items():
@@ -31,8 +33,7 @@ class AbstactSoftDeleteDocument(Document):
         signals.post_soft_delete.send(self.__class__, document=self)
 
     def soft_undelete(self):
-        """Will undelete the document
-        """
+        """Will undelete the document."""
         signals.pre_soft_undelete.send(self.__class__, document=self)
         for key in self._meta.get('soft_delete', {}):
             undelete_value = self._fields[key].default
@@ -42,7 +43,9 @@ class AbstactSoftDeleteDocument(Document):
 
     @property
     def is_soft_deleted(self):
-        """Return true if the field of the document are set according to the
+        """Check if the document is soft deleted.
+
+        Return true if the field of the document are set according to the
         soft deleted state as defined in the metas.
         """
         for key in self._meta.get('soft_delete', {}):
@@ -51,7 +54,9 @@ class AbstactSoftDeleteDocument(Document):
         return True
 
     def update(self, **kwargs):
-        """The ~mongoengine.Document.update method had to be overriden
+        """Overriding  ~mongoengine.Document.update method.
+
+        The ~mongoengine.Document.update method had to be overriden
         so it's not soft_delete aware and will update document
         no matter the "soft delete" state.
         """

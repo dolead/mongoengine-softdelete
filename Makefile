@@ -15,7 +15,8 @@ mypy:
 lint: pep8 mypy
 
 clean:
-	rm -rf build dist .coverage tests_coverage/ .mypy_cache .pytest_cache
+	rm -rf build dist .coverage tests_coverage/ .mypy_cache .pytest_cache \
+		mongoengine_softdelete/*.cover
 
 build: clean
 	poetry build
