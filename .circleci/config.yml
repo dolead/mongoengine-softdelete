@@ -68,7 +68,7 @@ jobs:
           name: Build
           command: |
             make build
-  store_coverage:
+  upload_coverage:
     docker:
       - image: circleci/python:3.7
     steps:
@@ -107,6 +107,6 @@ workflows:
                 - "mongoengine==0.23.1"
                 - "git+https://github.com/jaesivsm/mongoengine.git#tmp-merge"
                 - "mongoengine@latest"
-      - upload-coverage:
+      - upload_coverage:
           requires:
             - build_n_run
