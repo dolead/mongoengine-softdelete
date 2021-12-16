@@ -55,7 +55,7 @@ class AbstactSoftDeleteDocument(Document):
             raise
         finally:
             setattr(self, '__objects', old_qs)
-        return
+        return res
 
     def reload(self, *fields, **kwargs):
         """Overriding reload which would raise DoesNotExist
@@ -68,7 +68,7 @@ class AbstactSoftDeleteDocument(Document):
             raise
         finally:
             setattr(self, '__objects', old_qs)
-        return
+        return res
 
 
 class SoftDeleteDocument(AbstactSoftDeleteDocument):
