@@ -9,14 +9,15 @@ from mongoengine_softdelete.queryset import (SoftDeleteQuerySet,
                                              SoftDeleteQuerySetNoCache)
 
 
-class AbstactSoftDeleteDocument:
+class AbstactSoftDeleteDocument(Document):
+    meta = {'abstract': True}
 
     @property
-    def _qs(self):  # FIXME should be present in mongoengine ?
-        """Returns the queryset to use for updating / reloading / deletions."""
-        if not hasattr(self, '__objects'):
-            queryset_class = self._meta.get('queryset_class', QuerySet)
-            self.__objects = queryset_class(self, self._get_collection())
+    def _qs(self):
+        """Return the default queryset corresponding to this document."""
+        if not hasattr(self, "__objects"):
+            queryset_class = self._meta.get("queryset_class", QuerySet)
+            self.__objects = queryset_class(self.__class__, self._get_collection())
         return self.__objects
 
     def soft_delete(self):
@@ -59,49 +60,37 @@ class AbstactSoftDeleteDocument:
         so it's not soft_delete aware and will update document
         no matter the "soft delete" state.
         """
-        if not self.pk:
-            if kwargs.get('upsert', False):
-                query = self.to_mongo()
-                if "_cls" in query:
-                    del (query["_cls"])
-                return self._qs.including_soft_deleted \
-                    .filter(**query).update_one(**kwargs)
-            else:
-                raise OperationError('attempt to update a document not yet '
-                                     'saved')
-        return self._qs.including_soft_deleted \
-            .filter(**self._object_key).update_one(**kwargs)
+        old_qs = self._qs
+        setattr(self, '__objects', old_qs.including_soft_deleted)
+        try:
+            res = super().update(**kwargs)
+        except:
+            raise
+        finally:
+            setattr(self, '__objects', old_qs)
+        return res
 
-    def reload(self, max_depth=1):
-        """Overriding reload.
-
-        Overriding reload which would raise DoesNotExist
-        on soft deleted document
-        """
-        if not self.pk:
-            raise self.DoesNotExist("Document does not exist")
-        obj = self._qs.read_preference(ReadPreference.PRIMARY) \
-            .filter(**self._object_key).including_soft_deleted.limit(1) \
-            .select_related(max_depth=max_depth)
-
-        if obj:
-            obj = obj[0]
-        else:
-            raise self.DoesNotExist("Document does not exist")
-        for field in self._fields_ordered:
-            setattr(self, field, self._reload(field, obj[field]))
-        self._changed_fields = obj._changed_fields
-        self._created = False
-        return obj
+    def reload(self, *fields, **kwargs):
+        """Overriding reload which would raise DoesNotExist
+        on soft deleted document"""
+        old_qs = self._qs
+        setattr(self, '__objects', old_qs.including_soft_deleted)
+        try:
+            res = super().reload(*fields, **kwargs)
+        except:
+            raise
+        finally:
+            setattr(self, '__objects', old_qs)
+        return res
 
 
-class SoftDeleteDocument(Document, AbstactSoftDeleteDocument):
-    meta = {'queryset_class': SoftDeleteQuerySet}
+class SoftDeleteDocument(AbstactSoftDeleteDocument):
+    meta = {'queryset_class': SoftDeleteQuerySet, 'abstract': True}
     my_metaclass = TopLevelDocumentMetaclass
     __metaclass__ = TopLevelDocumentMetaclass
 
 
-class SoftDeleteNoCacheDocument(Document, AbstactSoftDeleteDocument):
-    meta = {'queryset_class': SoftDeleteQuerySetNoCache}
+class SoftDeleteNoCacheDocument(AbstactSoftDeleteDocument):
+    meta = {'queryset_class': SoftDeleteQuerySetNoCache, 'abstract': True}
     my_metaclass = TopLevelDocumentMetaclass
     __metaclass__ = TopLevelDocumentMetaclass

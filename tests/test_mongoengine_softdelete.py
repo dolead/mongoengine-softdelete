@@ -3,6 +3,7 @@ import pytest
 from mongoengine import connect
 
 from tests.models.icecream import IceCream
+from tests.models.softcream import SoftCream
 
 class TestCase:
     @staticmethod
@@ -17,10 +18,12 @@ class TestCase:
     @staticmethod
     def setUp():
         IceCream.drop_collection()
+        SoftCream.drop_collection()
 
     @staticmethod
     def tearDown():
         IceCream.drop_collection()
+        SoftCream.drop_collection()
 
     @staticmethod
     def test_create_icecream():
@@ -47,14 +50,23 @@ class TestCase:
         assert not ice.is_soft_deleted
 
         ice.soft_delete()
-        ice = ice.reload()
+        ice.reload()
         assert IceCream.objects().count() == 0
         assert IceCream.objects().including_soft_deleted.count() > 0
         assert IceCream.objects().soft_deleted.count() > 0
         assert ice.is_soft_deleted
 
         ice.soft_undelete()
+        ice.reload()
         assert IceCream.objects().count() > 0
         assert IceCream.objects().including_soft_deleted.count() > 0
         assert IceCream.objects().soft_deleted.count() == 0
         assert not ice.is_soft_deleted
+
+    # def test_undefined_soft_delete(self):
+    #     soft = SoftCream(flavor="Chocomint", color="Black & Green").save()
+    #     assert soft.id
+    #     assert SoftCream.objects().count() > 0
+    #     assert SoftCream.objects().including_soft_deleted.count() > 0
+    #     assert SoftCream.objects().soft_deleted.count() == 0
+    #     assert not soft.is_soft_deleted
