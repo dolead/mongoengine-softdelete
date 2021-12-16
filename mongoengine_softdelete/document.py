@@ -74,7 +74,7 @@ class AbstactSoftDeleteDocument(Document):
             raise self.DoesNotExist("Document does not exist")
 
         obj = (
-            self._qs.read_preference(ReadPreference.PRIMARY)
+            self._qs.including_soft_deleted.read_preference(ReadPreference.PRIMARY)
             .filter(**self._object_key)
             .only(*fields)
             .limit(1)
