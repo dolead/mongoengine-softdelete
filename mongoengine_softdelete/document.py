@@ -9,7 +9,8 @@ from mongoengine_softdelete.queryset import (SoftDeleteQuerySet,
                                              SoftDeleteQuerySetNoCache)
 
 
-class AbstactSoftDeleteDocument:
+class AbstactSoftDeleteDocument(Document):
+    meta = {'abstract': True}
 
     def soft_delete(self):
         """Won't delete the document as much as marking it as deleted according
@@ -108,13 +109,13 @@ class AbstactSoftDeleteDocument:
         return self
 
 
-class SoftDeleteDocument(AbstactSoftDeleteDocument, Document):
-    meta = {'queryset_class': SoftDeleteQuerySet}
+class SoftDeleteDocument(AbstactSoftDeleteDocument):
+    meta = {'queryset_class': SoftDeleteQuerySet, 'abstract': True}
     my_metaclass = TopLevelDocumentMetaclass
     __metaclass__ = TopLevelDocumentMetaclass
 
 
-class SoftDeleteNoCacheDocument(AbstactSoftDeleteDocument, Document):
-    meta = {'queryset_class': SoftDeleteQuerySetNoCache}
+class SoftDeleteNoCacheDocument(AbstactSoftDeleteDocument):
+    meta = {'queryset_class': SoftDeleteQuerySetNoCache, 'abstract': True}
     my_metaclass = TopLevelDocumentMetaclass
     __metaclass__ = TopLevelDocumentMetaclass
