@@ -47,67 +47,28 @@ class AbstactSoftDeleteDocument(Document):
         so it's not soft_delete aware and will update document
         no matter the "soft delete" state.
         """
-        if not self.pk:
-            if kwargs.get('upsert', False):
-                query = self.to_mongo()
-                if "_cls" in query:
-                    del (query["_cls"])
-                return self._qs.including_soft_deleted \
-                    .filter(**query).update_one(**kwargs)
-            else:
-                raise OperationError('attempt to update a document not yet '
-                                     'saved')
-        return self._qs.including_soft_deleted \
-            .filter(**self._object_key).update_one(**kwargs)
+        old_qs = self._qs
+        setattr(self, '__objects', old_qs.including_soft_deleted)
+        try:
+            res = super().update(**kwargs)
+        except:
+            raise
+        finally:
+            setattr(self, '__objects', old_qs)
+        return
 
     def reload(self, *fields, **kwargs):
         """Overriding reload which would raise DoesNotExist
         on soft deleted document"""
-        max_depth = 1
-        if fields and isinstance(fields[0], int):
-            max_depth = fields[0]
-            fields = fields[1:]
-        elif "max_depth" in kwargs:
-            max_depth = kwargs["max_depth"]
-
-        if self.pk is None:
-            raise self.DoesNotExist("Document does not exist")
-
-        obj = (
-            self._qs.read_preference(ReadPreference.PRIMARY)
-            .filter(**self._object_key)
-            .including_soft_deleted
-            .only(*fields)
-            .limit(1)
-            .select_related(max_depth=max_depth)
-        )
-
-        if obj:
-            obj = obj[0]
-        else:
-            raise self.DoesNotExist("Document does not exist")
-        for field in obj._data:
-            if not fields or field in fields:
-                try:
-                    setattr(self, field, self._reload(field, obj[field]))
-                except (KeyError, AttributeError):
-                    try:
-                        # If field is a special field, e.g. items is stored as _reserved_items,
-                        # a KeyError is thrown. So try to retrieve the field from _data
-                        setattr(self, field, self._reload(field, obj._data.get(field)))
-                    except KeyError:
-                        # If field is removed from the database while the object
-                        # is in memory, a reload would cause a KeyError
-                        # i.e. obj.update(unset__field=1) followed by obj.reload()
-                        delattr(self, field)
-
-        self._changed_fields = (
-            list(set(self._changed_fields) - set(fields))
-            if fields
-            else obj._changed_fields
-        )
-        self._created = False
-        return self
+        old_qs = self._qs
+        setattr(self, '__objects', old_qs.including_soft_deleted)
+        try:
+            res = super().reload(*fields, **kwargs)
+        except:
+            raise
+        finally:
+            setattr(self, '__objects', old_qs)
+        return
 
 
 class SoftDeleteDocument(AbstactSoftDeleteDocument):
