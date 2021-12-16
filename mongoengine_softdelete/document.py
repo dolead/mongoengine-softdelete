@@ -12,6 +12,14 @@ from mongoengine_softdelete.queryset import (SoftDeleteQuerySet,
 class AbstactSoftDeleteDocument(Document):
     meta = {'abstract': True}
 
+    @property
+    def _qs(self):
+        """Return the default queryset corresponding to this document."""
+        if not hasattr(self, "__objects"):
+            queryset_class = self._meta.get("queryset_class", QuerySet)
+            self.__objects = queryset_class(self.__class__, self._get_collection())
+        return self.__objects
+
     def soft_delete(self):
         """Won't delete the document as much as marking it as deleted according
         to parameters present in meta.
