@@ -85,7 +85,7 @@ workflows:
                 - "mongo:latest"
               mengine_version:
                 - "mongoengine==0.16.3"
-                - "mongoengine==0.23.2"
+                - "mongoengine==0.23.1"
                 - "git+https://github.com/jaesivsm/mongoengine.git#tmp-merge"
                 - "mongoengine@latest"
       - upload-coverage:
