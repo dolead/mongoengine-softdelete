@@ -9,15 +9,7 @@ from mongoengine_softdelete.queryset import (SoftDeleteQuerySet,
                                              SoftDeleteQuerySetNoCache)
 
 
-class AbstactSoftDeleteDocument:
-
-    @property
-    def _qs(self):  # FIXME should be present in mongoengine ?
-        """Returns the queryset to use for updating / reloading / deletions."""
-        if not hasattr(self, '__objects'):
-            queryset_class = self._meta.get('queryset_class', QuerySet)
-            self.__objects = queryset_class(self, self._get_collection())
-        return self.__objects
+class AbstactSoftDeleteDocument(Document):
 
     def soft_delete(self):
         """Won't delete the document as much as marking it as deleted according
@@ -77,36 +69,52 @@ class AbstactSoftDeleteDocument:
         elif "max_depth" in kwargs:
             max_depth = kwargs["max_depth"]
 
-        if not self.pk:
+        if self.pk is None:
             raise self.DoesNotExist("Document does not exist")
 
-        obj = self._qs.read_preference(ReadPreference.PRIMARY) \
-            .including_soft_deleted() \
-            .filter(**self._object_key).including_soft_deleted.limit(1) \
+        obj = (
+            self._qs.read_preference(ReadPreference.PRIMARY)
+            .filter(**self._object_key)
+            .only(*fields)
+            .limit(1)
             .select_related(max_depth=max_depth)
+        )
 
         if obj:
             obj = obj[0]
         else:
             raise self.DoesNotExist("Document does not exist")
-        for field in self._fields_ordered:
-            try:
-                setattr(self, field, self._reload(field, obj._data.get(field)))
-            except KeyError:
-                delattr(self, field)
-        self._changed_fields = list(set(self._changed_fields) - set(fields)) \
-                               if fields else obj._changed_fields
+        for field in obj._data:
+            if not fields or field in fields:
+                try:
+                    setattr(self, field, self._reload(field, obj[field]))
+                except (KeyError, AttributeError):
+                    try:
+                        # If field is a special field, e.g. items is stored as _reserved_items,
+                        # a KeyError is thrown. So try to retrieve the field from _data
+                        setattr(self, field, self._reload(field, obj._data.get(field)))
+                    except KeyError:
+                        # If field is removed from the database while the object
+                        # is in memory, a reload would cause a KeyError
+                        # i.e. obj.update(unset__field=1) followed by obj.reload()
+                        delattr(self, field)
+
+        self._changed_fields = (
+            list(set(self._changed_fields) - set(fields))
+            if fields
+            else obj._changed_fields
+        )
         self._created = False
-        return obj
+        return self
 
 
-class SoftDeleteDocument(AbstactSoftDeleteDocument, Document):
+class SoftDeleteDocument(AbstactSoftDeleteDocument):
     meta = {'queryset_class': SoftDeleteQuerySet}
     my_metaclass = TopLevelDocumentMetaclass
     __metaclass__ = TopLevelDocumentMetaclass
 
 
-class SoftDeleteNoCacheDocument(AbstactSoftDeleteDocument, Document):
+class SoftDeleteNoCacheDocument(AbstactSoftDeleteDocument):
     meta = {'queryset_class': SoftDeleteQuerySetNoCache}
     my_metaclass = TopLevelDocumentMetaclass
     __metaclass__ = TopLevelDocumentMetaclass
