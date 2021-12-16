@@ -102,10 +102,6 @@ workflows:
                 - "mongo:4.4"
                 - "mongo:latest"
               mengine_version:
-                - "mongoengine==0.16.3"
-                - "mongoengine@^0.17.0"
-                - "mongoengine@^0.18.0"
-                - "mongoengine@^0.19.0"
                 - "mongoengine@^0.20.0"
                 - "mongoengine@^0.21.0"
                 - "mongoengine@^0.22.0"
