@@ -1,9 +1,33 @@
 from mongoengine.queryset import QuerySet, QuerySetNoCache
+from mongoengine.queryset.transform import (COMPARISON_OPERATORS,
+                                            STRING_OPERATORS)
 
 
 class AbstractSoftDeleteMixin:
     def __to_mongo(self, key, val):
         return self._document._fields[key].to_mongo(val)
+
+    @staticmethod
+    def __extract_attr(key):
+        for operator in COMPARISON_OPERATORS + STRING_OPERATORS:
+            if key.endswith(f'__{operator}'):
+                key = key[:-(len(f'__{operator}'))]
+                if key.endswith('__not'):
+                    return key[:-len('__not')]
+                return key
+        return key
+
+    def _clean_initial_query(self, query):
+        """Wrapper for ~mongoengine.queryset.QuerySet.__call__.
+
+        A simple wrapper around ~mongoengine.queryset.QuerySet.__call__ that
+        allows query parameters to override those written in the initial query.
+        """
+        soft_delete_attrs = self._document._meta.get('soft_delete', {})
+        soft_delete_keys = {self.__extract_attr(k) for k in soft_delete_attrs}
+        query_keys = {self.__extract_attr(k) for k in query}
+        for key in query_keys.intersection(soft_delete_keys):
+            del self.initial_query[key]
 
     @property
     def initial_query(self):
@@ -40,74 +64,49 @@ class AbstractSoftDeleteMixin:
             self.initial_query[field] = self.__to_mongo(field, sd_value)
         return self.clone()
 
+    def _clone_into_qs(self, NewCls):
+        qs = NewCls(self._document, self._collection)
+        # being resilient to upstream attribute rename
+        method = getattr(self, '_clone_into') if hasattr(self, '_clone_into') \
+            else getattr(self, 'clone_into')
+        return method(qs)
+
 
 class SoftDeleteQuerySet(QuerySet, AbstractSoftDeleteMixin):
     def __init__(self, *args, **kwargs):
-        super(SoftDeleteQuerySet, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         not_soft_deleted_conditions = self._not_soft_deleted_cond(**kwargs)
         self.initial_query.update(not_soft_deleted_conditions)
 
     def __call__(self, q_obj=None, **query):
-        """Wrapper for ~mongoengine.queryset.QuerySet.__call__.
-
-        A simple wrapper around ~mongoengine.queryset.QuerySet.__call__ that
-        allows query parameters to override those written in the initial query.
-        """
-        soft_delete_attrs = self._document._meta.get('soft_delete', {})
-        for key in set(query):
-            if key in soft_delete_attrs:
-                del self.initial_query[key]
-            elif key.split('__')[0] in soft_delete_attrs:
-                del self.initial_query[key.split('__')[0]]
-        return super(SoftDeleteQuerySet, self).__call__(
-                q_obj=q_obj, **query)
+        self._clean_initial_query(query)
+        return super().__call__(q_obj=q_obj, **query)
 
     def cache(self):
         return self
 
     def no_cache(self):
-        if hasattr(self, '_clone_into'):   # Renamed in latest MongoEngine
-            return self._clone_into(SoftDeleteQuerySetNoCache(
-                self._document,
-                self._collection))
-        return self.clone_into(SoftDeleteQuerySetNoCache(
-            self._document,
-            self._collection))
+        return self._clone_into_qs(SoftDeleteQuerySetNoCache)
 
 
 class SoftDeleteQuerySetNoCache(QuerySetNoCache, AbstractSoftDeleteMixin):
 
     def __init__(self, *args, **kwargs):
-        super(QuerySetNoCache, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         not_soft_deleted_conditions = self._not_soft_deleted_cond(**kwargs)
         self.initial_query.update(not_soft_deleted_conditions)
 
     def __call__(self, q_obj=None, **query):
-        """
-        Wrapper for ~mongoengine.queryset.QuerySet.__call__.
-
-        A simple wrapper around ~mongoengine.queryset.QuerySet.__call__ that
-        allows query parameters to override those written in the initial query.
-        """
-        soft_delete_attrs = self._document._meta.get('soft_delete', {})
-        for key in set(query).intersection(soft_delete_attrs):
-            del self.initial_query[key]
-        return super(SoftDeleteQuerySetNoCache, self).__call__(
-                q_obj=q_obj, **query)
+        self._clean_initial_query(query)
+        return super().__call__(q_obj=q_obj, **query)
 
     def no_cache(self):
         return self
 
     def cache(self):
-        if hasattr(self, '_clone_into'):  # Renamed in latest MongoEngine
-            return self._clone_into(SoftDeleteQuerySetNoCache(
-                self._document,
-                self._collection))
-        return self.clone_into(SoftDeleteQuerySetNoCache(
-            self._document,
-            self._collection))
+        return self._clone_into_qs(SoftDeleteQuerySet)
 
     def __len__(self):
         """Returning the self.count()."""
