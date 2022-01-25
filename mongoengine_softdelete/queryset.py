@@ -47,7 +47,7 @@ class AbstractSoftDeleteMixin:
 
 class SoftDeleteQuerySet(QuerySet, AbstractSoftDeleteMixin):
     def __init__(self, *args, **kwargs):
-        super(SoftDeleteQuerySet, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         not_soft_deleted_conditions = self._not_soft_deleted_cond(**kwargs)
         self.initial_query.update(not_soft_deleted_conditions)
@@ -55,7 +55,7 @@ class SoftDeleteQuerySet(QuerySet, AbstractSoftDeleteMixin):
     @staticmethod
     def __extract_attr(key):
         for operator in chain(COMPARISON_OPERATORS, STRING_OPERATORS):
-            if key.endswith(operation):
+            if key.endswith(operator):
                 return key[:-(len(operator) + 2)]
 
     def __call__(self, q_obj=None, **query):
@@ -69,8 +69,7 @@ class SoftDeleteQuerySet(QuerySet, AbstractSoftDeleteMixin):
         query_keys = {self.__extract_attr(k) for k in query}
         for key in query_keys.intersection(soft_delete_keys):
             del self.initial_query[key]
-        return super(SoftDeleteQuerySet, self).__call__(
-                q_obj=q_obj, **query)
+        return super().__call__(q_obj=q_obj, **query)
 
     def cache(self):
         return self
@@ -80,15 +79,14 @@ class SoftDeleteQuerySet(QuerySet, AbstractSoftDeleteMixin):
             return self._clone_into(SoftDeleteQuerySetNoCache(
                 self._document,
                 self._collection))
-        return self.clone_into(SoftDeleteQuerySetNoCache(
-            self._document,
-            self._collection))
+        return self.clone_into(SoftDeleteQuerySetNoCache(self._document,
+                                                         self._collection))
 
 
 class SoftDeleteQuerySetNoCache(QuerySetNoCache, AbstractSoftDeleteMixin):
 
     def __init__(self, *args, **kwargs):
-        super(QuerySetNoCache, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         not_soft_deleted_conditions = self._not_soft_deleted_cond(**kwargs)
         self.initial_query.update(not_soft_deleted_conditions)
@@ -103,8 +101,7 @@ class SoftDeleteQuerySetNoCache(QuerySetNoCache, AbstractSoftDeleteMixin):
         soft_delete_attrs = self._document._meta.get('soft_delete', {})
         for key in set(query).intersection(soft_delete_attrs):
             del self.initial_query[key]
-        return super(SoftDeleteQuerySetNoCache, self).__call__(
-                q_obj=q_obj, **query)
+        return super().__call__(q_obj=q_obj, **query)
 
     def no_cache(self):
         return self
