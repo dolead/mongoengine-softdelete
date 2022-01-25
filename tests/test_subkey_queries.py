@@ -14,5 +14,8 @@ class TestSubKeyQueries(TestCase):
 
         nstor.dikt["hide_me"] = "maybe"
         nstor.save()
+        assert 1 == Nested.objects().count()
 
-        # assert 1 == Nested.objects().count()
+        nstor.dikt["hide_me"] = "yes"
+        nstor.save()
+        assert 0 == Nested.objects().count()
