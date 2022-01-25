@@ -1,5 +1,3 @@
-from itertools import chain
-
 from mongoengine.queryset import QuerySet, QuerySetNoCache
 from mongoengine.queryset.transform import (COMPARISON_OPERATORS,
                                             STRING_OPERATORS)
@@ -11,7 +9,7 @@ class AbstractSoftDeleteMixin:
 
     @staticmethod
     def __extract_attr(key):
-        for operator in chain(COMPARISON_OPERATORS, STRING_OPERATORS):
+        for operator in COMPARISON_OPERATORS + STRING_OPERATORS:
             if key.endswith(f'__{operator}'):
                 key = key[:-(len(f'__{operator}'))]
                 if key.endswith('__not'):
