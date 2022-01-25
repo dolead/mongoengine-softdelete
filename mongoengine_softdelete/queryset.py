@@ -55,8 +55,8 @@ class SoftDeleteQuerySet(QuerySet, AbstractSoftDeleteMixin):
     @staticmethod
     def __extract_attr(key):
         for operator in chain(COMPARISON_OPERATORS, STRING_OPERATORS):
-            if key.endswith(operator):
-                return key[:-(len(operator) + 2)]
+            if key.endswith(f'__{operator}'):
+                return key[:-(len(f'__{operator}'))]
 
     def __call__(self, q_obj=None, **query):
         """Wrapper for ~mongoengine.queryset.QuerySet.__call__.
