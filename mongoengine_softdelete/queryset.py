@@ -55,8 +55,11 @@ class SoftDeleteQuerySet(QuerySet, AbstractSoftDeleteMixin):
         allows query parameters to override those written in the initial query.
         """
         soft_delete_attrs = self._document._meta.get('soft_delete', {})
-        for key in set(query).intersection(soft_delete_attrs):
-            del self.initial_query[key]
+        for key in set(query):
+            if key in soft_delete_attrs:
+                del self.initial_query[key]
+            elif key.split('__')[0] in soft_delete_attrs:
+                del self.initial_query[key.split('__')[0]]
         return super(SoftDeleteQuerySet, self).__call__(
                 q_obj=q_obj, **query)
 
