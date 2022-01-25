@@ -66,8 +66,8 @@ class AbstractSoftDeleteMixin:
             self.initial_query[field] = self.__to_mongo(field, sd_value)
         return self.clone()
 
-    def _clone_into_qs(self):
-        qs = SoftDeleteQuerySetNoCache(self._document, self._collection)
+    def _clone_into_qs(self, NewCls):
+        qs = NewCls(self._document, self._collection)
         # being resilient to upstream attribute rename
         method = getattr(self, '_clone_into') if hasattr(self, '_clone_into') \
             else getattr(self, 'clone_into')
@@ -89,7 +89,7 @@ class SoftDeleteQuerySet(QuerySet, AbstractSoftDeleteMixin):
         return self
 
     def no_cache(self):
-        return self._clone_into_qs()
+        return self._clone_into_qs(SoftDeleteQuerySetNoCache)
 
 
 class SoftDeleteQuerySetNoCache(QuerySetNoCache, AbstractSoftDeleteMixin):
@@ -108,7 +108,7 @@ class SoftDeleteQuerySetNoCache(QuerySetNoCache, AbstractSoftDeleteMixin):
         return self
 
     def cache(self):
-        return self._clone_into_qs()
+        return self._clone_into_qs(SoftDeleteQuerySet)
 
     def __len__(self):
         """Returning the self.count()."""
