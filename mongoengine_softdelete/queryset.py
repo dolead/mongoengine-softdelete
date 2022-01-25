@@ -1,4 +1,8 @@
+from itertools import chain
+
 from mongoengine.queryset import QuerySet, QuerySetNoCache
+from mongoengine.queryset.transform import (COMPARISON_OPERATORS,
+                                            STRING_OPERATORS)
 
 
 class AbstractSoftDeleteMixin:
@@ -48,6 +52,12 @@ class SoftDeleteQuerySet(QuerySet, AbstractSoftDeleteMixin):
         not_soft_deleted_conditions = self._not_soft_deleted_cond(**kwargs)
         self.initial_query.update(not_soft_deleted_conditions)
 
+    @staticmethod
+    def __extract_attr(key):
+        for operator in chain(COMPARISON_OPERATORS, STRING_OPERATORS):
+            if key.endswith(operation):
+                return key[:-(len(operator) + 2)]
+
     def __call__(self, q_obj=None, **query):
         """Wrapper for ~mongoengine.queryset.QuerySet.__call__.
 
@@ -55,11 +65,10 @@ class SoftDeleteQuerySet(QuerySet, AbstractSoftDeleteMixin):
         allows query parameters to override those written in the initial query.
         """
         soft_delete_attrs = self._document._meta.get('soft_delete', {})
-        for key in set(query):
-            if key in soft_delete_attrs:
-                del self.initial_query[key]
-            elif key.split('__')[0] in soft_delete_attrs:
-                del self.initial_query[key.split('__')[0]]
+        soft_delete_keys = {self.__extract_attr(k) for k in soft_delete_attrs}
+        query_keys = {self.__extract_attr(k) for k in query}
+        for key in query_keys.intersection(soft_delete_keys):
+            del self.initial_query[key]
         return super(SoftDeleteQuerySet, self).__call__(
                 q_obj=q_obj, **query)
 
