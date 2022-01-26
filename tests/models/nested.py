@@ -1,4 +1,3 @@
-from enum import Enum
 from mongoengine import fields
 
 from mongoengine_softdelete.document import SoftDeleteDocument, SoftDeleteNoCacheDocument
@@ -15,16 +14,11 @@ class Nestor(SoftDeleteNoCacheDocument):
     dikt = fields.DictField()
 
 
-class Status(Enum):
-    OPEN = "OPEN"
-    CLOSED = "CLOSED"
-
-
 class Naster(SoftDeleteDocument):
     meta = {
         'collection': 'naster',
-        'soft_delete': {'status': Status.CLOSED},
+        'soft_delete': {'status': 'CLOSED'},
         'strict': False
     }
 
-    status = fields.EnumField(Status)
+    status = fields.StringField(choices=['CLOSED', 'OPEN'])
