@@ -1,32 +1,15 @@
-import pytest
-
-from mongoengine import connect
-
+from tests.base import TestCase
 from tests.models.icecream import IceCream
-from tests.models.softcream import SoftCream
 
-class TestCase:
-    @staticmethod
-    @pytest.fixture(autouse=True)
-    def _database():
-        db = connect(db="mongoengine_softdelete")
-        TestCase.setUp()
-        yield
-        TestCase.tearDown()
-        db.close()
 
-    @staticmethod
-    def setUp():
+class TestSoftDelete(TestCase):
+    def setUp(self):
         IceCream.drop_collection()
-        SoftCream.drop_collection()
 
-    @staticmethod
-    def tearDown():
+    def tearDown(self):
         IceCream.drop_collection()
-        SoftCream.drop_collection()
 
-    @staticmethod
-    def test_create_icecream():
+    def test_create_icecream(self):
         icecreams = IceCream.objects
         assert icecreams.count() == 0
 
@@ -40,8 +23,7 @@ class TestCase:
         icecreams = IceCream.objects()
         assert icecreams.count() == 1
 
-    @staticmethod
-    def test_soft_delete():
+    def test_soft_delete(self):
         ice = IceCream(flavor="Strawberry", color="Red").save()
         assert ice.id
         assert IceCream.objects().count() > 0
@@ -62,11 +44,3 @@ class TestCase:
         assert IceCream.objects().including_soft_deleted.count() > 0
         assert IceCream.objects().soft_deleted.count() == 0
         assert not ice.is_soft_deleted
-
-    # def test_undefined_soft_delete(self):
-    #     soft = SoftCream(flavor="Chocomint", color="Black & Green").save()
-    #     assert soft.id
-    #     assert SoftCream.objects().count() > 0
-    #     assert SoftCream.objects().including_soft_deleted.count() > 0
-    #     assert SoftCream.objects().soft_deleted.count() == 0
-    #     assert not soft.is_soft_deleted

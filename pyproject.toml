@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "mongoengine-softdelete"
-version = "0.0.4"
+version = "0.0.5"
 description = "Soft delete for MongoEngine"
 maintainers = [
     "Benjamin Hirschfield <benjamin.hirschfield@dolead.com>",
@@ -17,7 +17,6 @@ keywords = [ "mongoengine", "soft", "delete" ]
 
 [tool.poetry.dependencies]
 python = "^3.7"
-pytest-html = ">=3.1.1"
 pymongo = ">=3.6.1"
 mongoengine = ">=0.16.3"
 
