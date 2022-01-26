@@ -1,6 +1,7 @@
 from tests.base import TestCase
 from tests.models.nested import Nestor
 
+
 class TestSubKeyQueries(TestCase):
     def setUp(self):
         Nestor.drop_collection()
@@ -25,7 +26,3 @@ class TestSubKeyQueries(TestCase):
         sd_nstor.save()
         sd_nstor.reload()
         assert 1 == Nestor.objects().count()
-
-        # nstor.dikt["hide_me"] = "yes"
-        # nstor.save()
-        # assert 0 == Nestor.objects().count()

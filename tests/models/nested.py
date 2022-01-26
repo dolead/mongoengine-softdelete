@@ -12,13 +12,3 @@ class Nestor(SoftDeleteNoCacheDocument):
     }
 
     dikt = fields.DictField()
-
-
-class Naster(SoftDeleteDocument):
-    meta = {
-        'collection': 'naster',
-        'soft_delete': {'status': 'CLOSED'},
-        'strict': False
-    }
-
-    status = fields.StringField(choices=['CLOSED', 'OPEN'])
