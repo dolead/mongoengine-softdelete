@@ -15,6 +15,10 @@ class AbstactSoftDeleteDocument(Document):
     @property
     def _qs(self):
         """Return the default queryset corresponding to this document."""
+        if getattr(self, '_sd_classic', False):
+            if not hasattr(self, '__sd_classic_obj'):
+                self.__sd_classic_obj = QuerySet(self, self._get_collection())
+            return self.__sd_classic_obj
         if not hasattr(self, "__objects"):
             queryset_class = self._meta.get("queryset_class", QuerySet)
             self.__objects = queryset_class(self.__class__, self._get_collection())
@@ -60,27 +64,25 @@ class AbstactSoftDeleteDocument(Document):
         so it's not soft_delete aware and will update document
         no matter the "soft delete" state.
         """
-        old_qs = self._qs
-        setattr(self, '__objects', old_qs.including_soft_deleted)
+        self._sd_classic = True
         try:
             res = super().update(**kwargs)
         except:
             raise
         finally:
-            setattr(self, '__objects', old_qs)
+            self._sd_classic = False
         return res
 
     def reload(self, *fields, **kwargs):
         """Overriding reload which would raise DoesNotExist
         on soft deleted document"""
-        old_qs = self._qs
-        setattr(self, '__objects', old_qs.including_soft_deleted)
+        self._sd_classic = True
         try:
             res = super().reload(*fields, **kwargs)
         except:
             raise
         finally:
-            setattr(self, '__objects', old_qs)
+            self._sd_classic = False
         return res
 
 
