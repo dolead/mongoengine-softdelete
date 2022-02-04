@@ -17,13 +17,26 @@ class AbstractSoftDeleteMixin:
                 return key
         return key
 
-    def _clean_initial_query_on_conflicting_filter(self, query):
+    def _clean_initial_query_on_conflicting_filter(self, queryset,
+                                                   q_obj, query):
         soft_delete_attrs = self._document._meta.get('soft_delete', {})
-        soft_delete_keys = {self.__extract_attr(k) for k in soft_delete_attrs}
-        for key in query:
+        sd_bkey_comp = {self.__extract_attr(key): not isinstance(value, str)
+                         for key, value in soft_delete_attrs.items()}
+        for sd_key, sd_base_filter in list(soft_delete_attrs.items()):
+            sd_base_key = self.__extract_attr(sd_key)
+            if sd_base_key not in query:
+                continue
+            if not isinstance(sd_base_filter, str):
+                # if base sd filter is complex or a negation => ignore
+                continue
             base_key = self.__extract_attr(key)
-            if base_key in soft_delete_keys and base_key in self.initial_query:
-                del self.initial_query[base_key]
+            comp = base_key != key  # if same => simple cond, otherwise compo
+            if base_key not in sd_bkey_comp:
+                continue  # nothing to clean
+            if sd_bkey_comp[base_key] and comp:
+                continue
+            if base_key in queryset.initial_query:
+                del queryset._query[base_key]
 
     @property
     def initial_query(self):
@@ -76,8 +89,9 @@ class SoftDeleteQuerySet(QuerySet, AbstractSoftDeleteMixin):
         self.initial_query.update(not_soft_deleted_conditions)
 
     def __call__(self, q_obj=None, **query):
-        self._clean_initial_query_on_conflicting_filter(query)
-        return super().__call__(q_obj=q_obj, **query)
+        queryset = super().__call__(q_obj=q_obj, **query)
+        self._clean_initial_query_on_conflicting_filter(queryset, q_obj, query)
+        return queryset
 
     def cache(self):
         return self
@@ -95,8 +109,9 @@ class SoftDeleteQuerySetNoCache(QuerySetNoCache, AbstractSoftDeleteMixin):
         self.initial_query.update(not_soft_deleted_conditions)
 
     def __call__(self, q_obj=None, **query):
-        self._clean_initial_query_on_conflicting_filter(query)
-        return super().__call__(q_obj=q_obj, **query)
+        queryset = super().__call__(q_obj=q_obj, **query)
+        self._clean_initial_query_on_conflicting_filter(queryset, q_obj, query)
+        return queryset
 
     def no_cache(self):
         return self
