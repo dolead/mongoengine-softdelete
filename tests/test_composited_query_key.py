@@ -21,7 +21,19 @@ class TestCompositedSubKeyQuery(TestCase):
     def tearDown(self):
         SubQueryModel.drop_collection()
 
-    def test(self):
+    def test_not_overriding_compisited_key(self):
+        SubQueryModel(key='deleted').save()
+        SubQueryModel(key='knights').save()
+        SubQueryModel(key='round table').save()
+        query = SubQueryModel.objects
+        assert query.count() == 2
+        assert query.filter(key='knights').count() == 1
+        assert query.filter(key__ne='knights').count() == 1
+        assert query.filter(key__ne='deleted').count() == 2
+        assert query.filter(key__nin=['deleted', 'rm']).count() == 2
+        assert query.filter(key__in=['knights']).count() == 1
+
+    def test_composited_key(self):
         model = SubQueryModel(key='knights').save()
         query = SubQueryModel.objects
         assert query.count() == 1
