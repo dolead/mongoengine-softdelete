@@ -20,7 +20,7 @@ class AbstactSoftDeleteDocument(Document):
         """
         signals.pre_soft_delete.send(self.__class__, document=self)
         for key, val in self._meta.get('soft_delete', {}).items():
-            setattr(self, key.split('__ne')[0], val)
+            setattr(self, key, val)
         self.save()
         signals.post_soft_delete.send(self.__class__, document=self)
 
