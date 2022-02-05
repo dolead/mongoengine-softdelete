@@ -40,6 +40,9 @@ class SoftDeleteQuerySet(QuerySet, AbstractSoftDeleteMixin):
     def no_cache(self):
         return self._clone_into_qs(SoftDeleteQuerySetNoCache)
 
+    def __len__(self):
+        return self.count()
+
 
 class SoftDeleteQuerySetNoCache(QuerySetNoCache, AbstractSoftDeleteMixin):
 
@@ -48,3 +51,6 @@ class SoftDeleteQuerySetNoCache(QuerySetNoCache, AbstractSoftDeleteMixin):
 
     def cache(self):
         return self._clone_into_qs(SoftDeleteQuerySet)
+
+    def __len__(self):
+        return self.count()
