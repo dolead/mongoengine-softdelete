@@ -25,24 +25,16 @@ class TestCompositedSubKeyQuery(TestCase):
         SubQueryModel(key='deleted').save()
         SubQueryModel(key='knights').save()
         SubQueryModel(key='round table').save()
+        SubQueryModel.prout = True
         query = SubQueryModel.objects
-        assert 'key' in query._sd_initial_query, "initial shouldn't be cleared"
         assert query.count() == 2
-        assert 'key' in query._sd_initial_query, "initial shouldn't be cleared"
         assert query.filter(key='knights').count() == 1
-        assert 'key' in query._sd_initial_query, "initial shouldn't be cleared"
         assert query.filter(key__ne='knights').count() == 1
-        assert 'key' in query._sd_initial_query, "initial shouldn't be cleared"
         assert query.filter(key__contains='knights').count() == 1
-        assert 'key' in query._sd_initial_query, "initial shouldn't be cleared"
         assert query.filter(key__ne='deleted').count() == 2
-        assert 'key' in query._sd_initial_query, "initial shouldn't be cleared"
         assert query.filter(key__nin=['deleted']).count() == 2
-        assert 'key' in query._sd_initial_query, "initial shouldn't be cleared"
         assert query.filter(key__in=['knights']).count() == 1
-        assert 'key' in query._sd_initial_query, "initial shouldn't be cleared"
         assert query.filter(key__nin=['knights']).count() == 1
-        assert 'key' in query._sd_initial_query, "initial shouldn't be cleared"
 
         query = SubQueryModel.objects.including_soft_deleted
         assert query.count() == 3
@@ -84,6 +76,7 @@ class TestCompositedSubKeyQuery(TestCase):
         assert query.filter(key__in=['knights']).count() == 1
 
         model.soft_delete()
+        assert SubQueryModel.objects.count() == 0
         query = SubQueryModel.objects.soft_deleted
         assert query.count() == 1
         assert query.filter(key='knights').count() == 0
