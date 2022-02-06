@@ -45,30 +45,31 @@ class AbstactSoftDeleteDocument(Document):
                 return False
         return True
 
+    def _sd_objects(self, queryset):
+        soft_delete_attrs = self._meta.get('soft_delete', {})
+        QuerySetCls = self._meta['queryset_class']
+        for field, sd_value in soft_delete_attrs.items():
+            queryset = queryset.filter(**{field+'__ne': sd_value})
+        return queryset._clone_into(QuerySetCls(self, self._get_collection()))
+
 
 class SoftDeleteDocument(AbstactSoftDeleteDocument):
-    meta = {'abstract': True}
+    meta = {'abstract': True, 'queryset_class': SoftDeleteQuerySet}
     my_metaclass = TopLevelDocumentMetaclass
     __metaclass__ = TopLevelDocumentMetaclass
 
     @queryset_manager
     def objects(self, queryset):
-        soft_delete_attrs = self._meta.get('soft_delete', {})
-        for field, sd_value in soft_delete_attrs.items():
-            queryset = queryset.filter(**{field+'__ne': sd_value})
-        return queryset._clone_into(SoftDeleteQuerySet(
-            self, self._get_collection()))
+        # set at metaclass, hence the double self
+        return self._sd_objects(self, queryset)
 
 
 class SoftDeleteNoCacheDocument(AbstactSoftDeleteDocument):
-    meta = {'abstract': True}
+    meta = {'abstract': True, 'queryset_class': SoftDeleteQuerySetNoCache}
     my_metaclass = TopLevelDocumentMetaclass
     __metaclass__ = TopLevelDocumentMetaclass
 
     @queryset_manager
     def objects(self, queryset):
-        soft_delete_attrs = self._meta.get('soft_delete', {})
-        for field, sd_value in soft_delete_attrs.items():
-            queryset = queryset.filter(**{field +  '__ne': sd_value})
-        return queryset._clone_into(SoftDeleteQuerySetNoCache(
-            self, self._get_collection()))
+        # set at metaclass, hence the double self
+        return self._sd_objects(self, queryset)
