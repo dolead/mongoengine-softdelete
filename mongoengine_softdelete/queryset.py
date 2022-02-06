@@ -1,7 +1,4 @@
-from mongoengine.queryset import QuerySet, QuerySetNoCache, transform
-from mongoengine import Q
-from mongoengine.queryset.transform import (COMPARISON_OPERATORS,
-                                            STRING_OPERATORS)
+from mongoengine.queryset import QuerySet, QuerySetNoCache
 
 
 class AbstractSoftDeleteMixin:
