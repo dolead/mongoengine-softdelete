@@ -49,7 +49,7 @@ class AbstactSoftDeleteDocument(Document):
         soft_delete_attrs = self._meta.get('soft_delete', {})
         QuerySetCls = self._meta['queryset_class']
         for field, sd_value in soft_delete_attrs.items():
-            queryset = queryset.filter(**{field+'__ne': sd_value})
+            queryset = queryset.filter(**{field + '__ne': sd_value})
         return queryset._clone_into(QuerySetCls(self, self._get_collection()))
 
 
