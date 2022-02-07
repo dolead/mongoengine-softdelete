@@ -21,5 +21,5 @@ clean:
 build: clean
 	poetry build
 
-publish:
+publish: build
 	poetry publish
