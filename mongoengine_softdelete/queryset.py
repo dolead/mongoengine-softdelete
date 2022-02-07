@@ -15,10 +15,14 @@ class AbstractSoftDeleteMixin:
         """Will clean the queryset from soft_delete notions."""
         qs = self.clone()
         soft_delete_attrs = self._document._meta.get('soft_delete', {})
-        query = getattr(qs._query_obj, 'query', {})
-        for key in soft_delete_attrs:
-            query.pop(key + '__ne', None)
-            self._sd_initial_query.pop(key + '__ne', None)
+        def clean_query_obj(query_obj):
+            query = getattr(query_obj, 'query', {})
+            for key in soft_delete_attrs:
+                query.pop(key + '__ne', None)
+                self._sd_initial_query.pop(key + '__ne', None)
+            for child_query_obj in getattr(query_obj, 'children', []):
+                clean_query_obj(child_query_obj)
+        clean_query_obj(qs._query_obj)
         return qs
 
     @property
