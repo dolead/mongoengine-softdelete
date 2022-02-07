@@ -1,7 +1,7 @@
 from pymongo.read_preferences import ReadPreference
 
 from mongoengine.base import TopLevelDocumentMetaclass
-from mongoengine.queryset import QuerySet, OperationError
+from mongoengine.queryset import QuerySet, OperationError, queryset_manager
 from mongoengine.document import Document
 
 from mongoengine_softdelete import signals
@@ -11,14 +11,6 @@ from mongoengine_softdelete.queryset import (SoftDeleteQuerySet,
 
 class AbstactSoftDeleteDocument(Document):
     meta = {'abstract': True}
-
-    @property
-    def _qs(self):
-        """Return the default queryset corresponding to this document."""
-        if not hasattr(self, "__objects"):
-            queryset_class = self._meta.get("queryset_class", QuerySet)
-            self.__objects = queryset_class(self.__class__, self._get_collection())
-        return self.__objects
 
     def soft_delete(self):
         """Soft delete a document.
@@ -53,44 +45,31 @@ class AbstactSoftDeleteDocument(Document):
                 return False
         return True
 
-    def update(self, **kwargs):
-        """Overriding  ~mongoengine.Document.update method.
-
-        The ~mongoengine.Document.update method had to be overriden
-        so it's not soft_delete aware and will update document
-        no matter the "soft delete" state.
-        """
-        old_qs = self._qs
-        setattr(self, '__objects', old_qs.including_soft_deleted)
-        try:
-            res = super().update(**kwargs)
-        except:
-            raise
-        finally:
-            setattr(self, '__objects', old_qs)
-        return res
-
-    def reload(self, *fields, **kwargs):
-        """Overriding reload which would raise DoesNotExist
-        on soft deleted document"""
-        old_qs = self._qs
-        setattr(self, '__objects', old_qs.including_soft_deleted)
-        try:
-            res = super().reload(*fields, **kwargs)
-        except:
-            raise
-        finally:
-            setattr(self, '__objects', old_qs)
-        return res
+    def _sd_objects(self, queryset):
+        soft_delete_attrs = self._meta.get('soft_delete', {})
+        QuerySetCls = self._meta['queryset_class']
+        for field, sd_value in soft_delete_attrs.items():
+            queryset = queryset.filter(**{field + '__ne': sd_value})
+        return queryset._clone_into(QuerySetCls(self, self._get_collection()))
 
 
 class SoftDeleteDocument(AbstactSoftDeleteDocument):
-    meta = {'queryset_class': SoftDeleteQuerySet, 'abstract': True}
+    meta = {'abstract': True, 'queryset_class': SoftDeleteQuerySet}
     my_metaclass = TopLevelDocumentMetaclass
     __metaclass__ = TopLevelDocumentMetaclass
+
+    @queryset_manager
+    def objects(self, queryset):
+        # set at metaclass, hence the double self
+        return self._sd_objects(self, queryset)
 
 
 class SoftDeleteNoCacheDocument(AbstactSoftDeleteDocument):
-    meta = {'queryset_class': SoftDeleteQuerySetNoCache, 'abstract': True}
+    meta = {'abstract': True, 'queryset_class': SoftDeleteQuerySetNoCache}
     my_metaclass = TopLevelDocumentMetaclass
     __metaclass__ = TopLevelDocumentMetaclass
+
+    @queryset_manager
+    def objects(self, queryset):
+        # set at metaclass, hence the double self
+        return self._sd_objects(self, queryset)
